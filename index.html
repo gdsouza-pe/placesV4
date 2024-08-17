@@ -13,6 +13,7 @@
         <link rel="stylesheet" href="css/leaflet-search.css">
         <link rel="stylesheet" href="css/filter.css">
 <link rel="stylesheet" href="css/nouislider.min.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
         <style>
         html, body, #map {
             width: 100%;
@@ -36,6 +37,7 @@
         <script src="js/rbush.min.js"></script>
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
+        <script src="js/leaflet-measure.js"></script>
         <script src="js/leaflet-search.js"></script>
         <script src="js/tailDT.js"></script>
 <script src="js/nouislider.min.js"></script>
@@ -106,6 +108,16 @@
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
             if (bounds_group.getLayers().length) {
@@ -144,6 +156,30 @@
                 mouseover: highlightFeature,
             });
             var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SOURCE_ID'] !== null ? autolinker.link(feature.properties['SOURCE_ID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['JOIN_COUNT'] !== null ? autolinker.link(feature.properties['JOIN_COUNT'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['GiZScore'] !== null ? autolinker.link(feature.properties['GiZScore'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['GiPValue'] !== null ? autolinker.link(feature.properties['GiPValue'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NNeighbors'] !== null ? autolinker.link(feature.properties['NNeighbors'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Gi_Bin'] !== null ? autolinker.link(feature.properties['Gi_Bin'].toLocaleString()) : '') + '</td>\
+                    </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
 			layer.on('popupopen', function(e) {
@@ -243,7 +279,7 @@
                     </tr>\
                     <tr>\
                         <th scope="row">Construction Year:</th>\
-                        <td class="visible-with-data" id="Construction Year">' + (feature.properties['Construction Year'] !== null ? autolinker.link(feature.properties['Construction Year'].toLocaleString()) : '') + '</td>\
+                        <td>' + (feature.properties['Construction Year'] !== null ? autolinker.link(feature.properties['Construction Year'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">School Type:</th>\
@@ -266,11 +302,15 @@
                         <td>' + (feature.properties['Utilization Group'] !== null ? autolinker.link(feature.properties['Utilization Group'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">2+ Speciality Classrooms:</th>\
+                        <th scope="row">% of Air-Conditioned Classrooms:</th>\
+                        <td>' + (feature.properties['AC Classroom Group'] !== null ? autolinker.link(feature.properties['AC Classroom Group'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">2+ Specialty Rooms:</th>\
                         <td>' + (feature.properties['Specialty Rooms - Right Mix'] !== null ? autolinker.link(feature.properties['Specialty Rooms - Right Mix'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">Parent Resource Room:</th>\
+                        <th scope="row">Parent Resource Rooms:</th>\
                         <td>' + (feature.properties['Resource Room - Right Mix'] !== null ? autolinker.link(feature.properties['Resource Room - Right Mix'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
@@ -649,7 +689,7 @@
             sel_UtilizationGroup.innerHTML = UtilizationGroup_options_str;
             div_UtilizationGroup.appendChild(sel_UtilizationGroup);
             var lab_UtilizationGroup = document.createElement('div');
-            lab_UtilizationGroup.innerHTML = 'Utilization';
+            lab_UtilizationGroup.innerHTML = 'Utilization Group';
             lab_UtilizationGroup.className = 'filterlabel';
             div_UtilizationGroup.appendChild(lab_UtilizationGroup);
             var reset_UtilizationGroup = document.createElement('div');
@@ -749,7 +789,7 @@
             sel_SpecialtyRoomsRightMix.innerHTML = SpecialtyRoomsRightMix_options_str;
             div_SpecialtyRoomsRightMix.appendChild(sel_SpecialtyRoomsRightMix);
             var lab_SpecialtyRoomsRightMix = document.createElement('div');
-            lab_SpecialtyRoomsRightMix.innerHTML = '2+ Speciality Classroom';
+            lab_SpecialtyRoomsRightMix.innerHTML = '2+ Speciality Classrooms';
             lab_SpecialtyRoomsRightMix.className = 'filterlabel';
             div_SpecialtyRoomsRightMix.appendChild(lab_SpecialtyRoomsRightMix);
             var reset_SpecialtyRoomsRightMix = document.createElement('div');
@@ -772,7 +812,7 @@
             sel_ResourceRoomRightMix = document.createElement('select');
             sel_ResourceRoomRightMix.multiple = true;
             sel_ResourceRoomRightMix.size = 3;
-            sel_ResourceRoomRightMix.id = "";
+            sel_ResourceRoomRightMix.id = "sel_ResourceRoomRightMix";
             var ResourceRoomRightMix_options_str = "";
             sel_ResourceRoomRightMix.onchange = function(){filterFunc()};
             ResourceRoomRightMix_options_str  += '<option value="Yes">Yes</option>';
